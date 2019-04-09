@@ -1,6 +1,0 @@
-Pozdrav,
-
-Hvala što ste prisustvovali mojoj prezentaciji na Sinergiji 2018.
-U folderu se nalazi prezentacija, kao i PowerShell skripte koje sam koristio na demoima.
-
-Srdačno,
