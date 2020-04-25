@@ -1,0 +1,40 @@
+name: Deploy ASP.NET Core app to Azure Web App
+
+on: push
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+    steps:
+    
+    # Checkout the Github repository
+    - uses: actions/checkout@master
+
+    # Setup .NET Core SDK
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.101
+
+    # Run dotnet build and publish
+    - name: Build application with dotnet
+      run: dotnet build --configuration Release
+    
+    - name: Publishing dotnet application
+      run: |
+        dotnet publish -c Release -o web_app_demo
+    
+    # Deploy to Azure Web apps
+    - name: Deploy Web App to the 1st region
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ga-balkan-01 # The name of the web app
+        publish-profile: ${{ secrets.ga_balkan_01 }}
+        package: './web_app_demo' # The name of the output location
+      
+    - name: Deploy Web App to the 2nd region
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ga-balkan-02 # The name of the web app
+        publish-profile: ${{ secrets.ga_balkan_02 }}
+        package: './web_app_demo' # The name of the output location
