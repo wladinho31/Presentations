@@ -1,0 +1,11 @@
+# Login to Ubuntu Docker VM (be sure that SSH port is open)
+ssh username@server_name_or_ipaddress
+
+# The common Docker commands 
+# https://docs.docker.com/engine/reference/commandline/docker/
+
+# Create new image using Dockerfile
+docker build -t <image_name> .
+
+# Start Docker container
+docker run --name <container_name> -d -p 80:80 <image_name> # Run Docker container in the background

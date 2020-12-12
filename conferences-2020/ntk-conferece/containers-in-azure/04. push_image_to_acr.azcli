@@ -1,0 +1,9 @@
+# Login to Ubuntu Docker VM (be sure that SSH port is open)
+ssh username@server_name_or_ipaddress
+
+# Login to Azure Container Registry
+docker login <destionation_registry_fqdn> --username <acr-username> --password <acr-password>
+
+# Publish container image to the Azure Container Registry
+docker tag <source_image_name> <destionation_registry_fqdn/image_name>
+docker push <destionation_registry_fqdn/image_name>

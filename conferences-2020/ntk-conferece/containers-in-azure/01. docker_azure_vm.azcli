@@ -1,0 +1,56 @@
+########################################################################################################### 
+##                                                                                                       ##
+## Docker on Azure can be deployed in a few different ways.                                              ##
+##                                                                                                       ##
+##  1) Deploy virtual machine using predefined ARM template that will install Docker engine on Ubuntu VM ##
+##      https://azure.microsoft.com/en-us/resources/templates/docker-simple-on-ubuntu/                   ##
+##                                                                                                       ##
+##  2) Deploy Linux VM and install Docker extension manually                                             ##
+##   	https://github.com/Azure/azure-docker-extension                                                  ##
+##                                                                                                       ##
+##  3) Deploy Linux or Windows virtual machine and install all needed docker components manually         ##
+##                                                                                                       ##
+###########################################################################################################
+
+# Login to Azure account and select appropriate subscription
+az login --use-device-code
+az account list --output table
+az account set --subscription <value of the property subscription id or name>
+
+# Set variables
+$location      = 'northeurope' # 'westus', 'westus2', 'eastus', 'eastus2', 'westeurope', 'northeurope'
+$rgName        = 'ntk2020-rg'
+$vnetName      = 'ntk-docker-vnet'
+$subnetName    = 'containers'
+$addressPrefix = '10.123.0.0/16'
+$subnetIPRange = '10.123.1.0/24'
+$nsgName       = "$vnetName-nsg"
+$vmName        = 'docker-vm'
+$vmSize        = 'Standard_D2s_v3' # Standard_B2s, Standard_D2s_v3
+$OSImage       = 'UbuntuLTS' # 'UbuntuLTS', 'CentOS', 'CoreOS', 'RHEL'
+$adminUser     = 'azureuser'
+$adminPassword = 'Pa$$w0rd1234'
+
+# Create a resource group
+az group create --name $rgName --location $location
+
+# Create a virtual network, subnet, and network security group that will be attached to the subnet
+az network nsg create --name $nsgName --resource-group $rgName --location $location
+
+az network nsg rule create --resource-group $rgName --nsg-name $nsgName --name Allow_Remote_Access --priority 100 --source-address-prefixes Internet --destination-port-ranges 22 80 --destination-address-prefixes * --access Allow --protocol TCP --description "Allow remote access from secure locations."
+
+az network vnet create --resource-group $rgName --name $vnetName --address-prefixes $addressPrefix --subnet-name $subnetName --subnet-prefixes $subnetIPRange
+
+az network vnet subnet update --resource-group $rgName --vnet-name $vnetName --name $subnetName --network-security-group $nsgName
+
+# Create a Linux virtual machine and all needed resources
+az network public-ip create --resource-group $rgName --location $location --name "$vmName-pip" --allocation-method Static --sku Basic
+
+az network nic create --resource-group $rgName --location $location --name "$vmName-nic" --vnet-name $vnetName --subnet $subnetName --public-ip-address "$vmName-pip"
+
+az vm create --resource-group $rgName --name $vmName --location $location --nics "$vmName-nic" --os-disk-name "$vmName-OsDisk" --image $OSImage --size $vmSize --admin-username $adminUser --admin-password $adminPassword
+
+# Install Docker extension on a virtual machine
+az vm extension set --vm-name $vmName --resource-group $rgName --name DockerExtension --publisher Microsoft.Azure.Extensions --version 1.2
+
+az vm restart --name $vmName --resource-group $rgName

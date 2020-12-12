@@ -1,0 +1,15 @@
+# Login to Azure account
+az login --use-device-code
+az account list --output table
+az account set --subscription "Azure MVP Subscription"
+
+# Set variables
+$resourceGroup = ""
+$aciName       = ""
+$location      = ""
+$imageName     = ""
+$acrUsername   = ""
+$acrPassword   = ""
+
+# Create Azure Container Registry
+az container create --resource-group $resourceGroup --name "$aciName" --image $imageName --dns-name-label $aciName --ports 80 --location $location --cpu 1 --memory 1 --registry-username $acrUsername --registry-password $acrPassword

@@ -1,0 +1,183 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storageAccountType": {
+            "type": "string"
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "containerGroupName": {
+            "type": "string"
+          },
+          "dnsNameLabel": {
+            "type": "string"
+        },
+        "mysqlRootPassword": {
+            "type": "securestring"
+        },
+        "mysqlWordpressPassword": {
+            "type": "securestring"
+        }
+    },
+    "variables": {
+        "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "FileStorage",
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccountName'), '/default/', 'mysqldata')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccountName'), '/default/', 'wordpressdata')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "name": "[parameters('containerGroupName')]",
+            "apiVersion": "2018-10-01",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]"
+            ],
+            "location": "[resourceGroup().location]",
+            "properties": {
+            "containers": [
+                {
+                    "name": "mysql",
+                    "properties": {
+                        "image": "mysql:5.7",
+                        "resources": {
+                            "requests": {
+                                "cpu": 1,
+                                "memoryInGb": 1
+                            }
+                        },
+                        "ports": [
+                            {
+                                "protocol": "tcp",
+                                "port": 3306
+                            }
+                        ],
+                        "volumeMounts": [
+                            {
+                                "name": "db-data",
+                                "mountPath": "/var/lib/mysql"
+                            }
+                        ],
+                        "environmentVariables": [
+                            {
+                                "name": "MYSQL_ROOT_PASSWORD",
+                                "secureValue": "[parameters('mysqlRootPassword')]"
+                            },
+                            {
+                                "name": "MYSQL_DATABASE",
+                                "value": "wordpress_db"
+                            },
+                            {
+                                "name" :"MYSQL_USER",
+                                "value": "wp_admin"
+                            },
+                            {
+                                "name": "MYSQL_PASSWORD",
+                                "secureValue": "[parameters('mysqlWordpressPassword')]"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "wordpress",
+                    "properties": {
+                        "image": "wordpress",
+                        "resources": {
+                            "requests": {
+                                "cpu": 1,
+                                "memoryInGb": 1
+                                }
+                        },
+                        "ports": [
+                            {
+                                "port": 80
+                            }
+                        ],
+                        "volumeMounts": [
+                            {
+                                "name": "wp-data",
+                                "mountPath": "/var/www/html"
+                            }
+                        ],
+                        "environmentVariables": [
+                            {
+                                "name": "WORDPRESS_DB_HOST",
+                                "value": "127.0.0.1:3306"
+                            },
+                            {
+                                "name": "WORDPRESS_DB_NAME",
+                                "value": "wordpress_db"
+                            },
+                            {
+                                "name": "WORDPRESS_DB_USER",
+                                "value": "wp_admin"
+                            },
+                            {
+                                "name": "WORDPRESS_DB_PASSWORD",
+                                "secureValue": "[parameters('mysqlWordpressPassword')]"
+                            }                            
+                        ]
+                    }
+                }
+        ],
+        "osType": "Linux",
+        "restartPolicy": "OnFailure",
+        "ipAddress": {
+            "type": "Public",
+            "dnsNameLabel": "[parameters('dnsNameLabel')]",
+            "ports": [
+                {
+                    "protocol": "tcp",
+                    "port": 80
+                        }
+                    ]
+                },
+            "volumes": [
+                {
+                    "name": "db-data",
+                    "azureFile": {
+                        "shareName": "mysqldata",
+                        "storageAccountName": "[parameters('storageAccountName')]",
+                        "storageAccountKey": "[listKeys(variables('storageAccountId'), '2019-06-01').keys[0].value]"
+                        }
+                    },
+                {
+                    "name": "wp-data",
+                    "azureFile": {
+                        "shareName": "wordpressdata",
+                        "storageAccountName": "[parameters('storageAccountName')]",
+                        "storageAccountKey": "[listKeys(variables('storageAccountId'), '2019-06-01').keys[0].value]"
+                        }
+                    }
+                ]    
+            }
+        }
+    ],
+    "outputs": {}
+}

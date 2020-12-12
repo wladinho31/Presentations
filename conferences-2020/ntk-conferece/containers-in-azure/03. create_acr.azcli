@@ -1,0 +1,12 @@
+# Login to Azure account
+az login --use-device-code
+az account list --output table
+az account set --subscription "Azure MVP Subscription"
+
+# Set variables
+$resourceGroup = ""
+$acrName       = ""
+$location      = ""
+
+# Create Azure Container Registry
+az acr create --resource-group $resourceGroup --name $acrName --sku Basic --location $location --admin-enabled true

@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "existingVnetResourceGroup": {
+        "value": "ntk2020-rg"
+      },
+      "existingVnetName": {
+        "value": "ntk2020-vnet"
+      },
+      "existingSubnetName": {
+        "value": "servers"
+      },
+      "virtualMachineName": {
+        "value": "ntk2020-windows"
+      },
+      "virtualMachineSize": {
+        "value": "Standard_B2s"
+      },
+      "windowsServerSku": {
+        "value": "2016-Datacenter"
+      },
+      "OSDiskType": {
+        "value": "Premium_LRS"
+      },
+      "diagnosticsStorageAccountName": {
+        "value": "ntk2020diagstor13579"
+      },
+      "adminUsername": {
+        "value": "azureuser"
+      },
+      "adminPassword": {
+        "value": "Pa$$w0rd1234"
+      }
+    }
+  }
