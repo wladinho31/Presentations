@@ -56,11 +56,11 @@ variable "tags" {
 }
 
 variable "username" {
-  type = string
+  type    = string
   default = "vladimir"
 }
 
 variable "password" {
-  type = string
+  type    = string
   default = "Pa$$w0rd1234"
 }

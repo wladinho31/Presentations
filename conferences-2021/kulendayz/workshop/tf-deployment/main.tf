@@ -111,7 +111,7 @@ resource "azurerm_app_service" "web_app" {
   app_service_plan_id = azurerm_app_service_plan.app_plan.id
 
   site_config {
-    dotnet_framework_version = "v4.0"
+    dotnet_framework_version  = "v4.0"
     windows_fx_version        = "DOTNETCORE|3.1"
     always_on                 = true
     ftps_state                = "FtpsOnly"
@@ -120,8 +120,9 @@ resource "azurerm_app_service" "web_app" {
   }
 
   source_control {
-    repo_url = "https://github.com/wladinho31/kd-demo-app"
-    branch   = "main"
+    repo_url           = "https://github.com/wladinho31/kd-demo-app"
+    branch             = "main"
+    manual_integration = true
   }
 
   connection_string {
